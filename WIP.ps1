@@ -100,7 +100,9 @@ function New-LocalAdmin {
     Add-LocalGroupMember -Group $Group -Member $User
   }
   if ($Group -ne "Administrators") {
-    
+    Write-Verbose "Prevent user from changing password"
+    Set-LocalUser -Name $User -UserMayChangePassword $false
+  }
 }
 
 function Unprotect-FileAndPrinter {
