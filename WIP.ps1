@@ -1,28 +1,4 @@
-# Enable Script Execution
-Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope CurrentUser
-
-# Disable Script Execution
-Set-ExecutionPolicy -ExecutionPolicy Restricted -Scope CurrentUser
-
 # TODO phish@xplatform.dev documentation
-
-function Wait-AnyKey {
-  param(
-    [string]
-    $Message = "Press any key to continue"
-  )
-  if ($psISE)
-  {
-    Add-Type -AssemblyName System.Windows.Forms
-    [System.Windows.Forms.MessageBox]::Show("$Message")
-  }
-  else
-  {
-    Write-Host "$Message" -ForegroundColor Yellow
-    $Unused = $host.ui.RawUI.ReadKey("NoEcho,IncludeKeyDown")
-  }
-}
-
 # Removes password lenth requirements
 function Unprotect-LocalPasswordLimit {
   [CmdletBinding()]
@@ -57,23 +33,9 @@ function Disable-UAC {
 function New-LocalAccount {
   # TODO phish@xplatform.dev TESTING!
   [CmdletBinding()]
-  param (
-    [string]
-    $UserName = "ITadmin"
-
-    [Parameter(
-      ValidateSet(
-        "Administrators", 
-        "Users", 
-        ErrorMessage="Edit the script for that particular group if it's needed"
-      )
-    )]
-    [string]
-    $GroupName = "Administrators"
-
-    [string]
-    $Description = "42 North Dental Local Admin Account"
-  )
+  $UserName = "ITadmin"
+  $Description = "42 North Dental Local Admin Account"
+  $GroupName = "Administrators"
   
   $User = "$env:COMPUTERNAME\$UserName"
   $UserExists = (Get-LocalUser).Name -Contains $User
@@ -175,7 +137,7 @@ function Initilize-PC {
   Disable-UAC
   New-LocalAccount
   Grant-FileAndPrinterSharing
-  New-AcquisitionAgentTask
+  # New-AcquisitionAgentTask
   Disable-DefaultAdmin
 }
 
