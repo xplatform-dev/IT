@@ -77,6 +77,7 @@ function Grant-NetworkDiscovery {
   netsh advfirewall firewall set rule group="Network Discovery" new enable=Yes
 }
 
+<# FIXME phish@xplatform.dev
 workflow Rename-Host {
   # Saving variable for later
   $Hostname = $env:HOSTNAME
@@ -89,7 +90,7 @@ workflow Rename-Host {
     $Hostname = Read-Host -Prompt "New Hostname"
     Rename-Computer -NewName $Hostname
   }
-}
+} #>
 
 function Disable-DefaultAdmin {
   Disable-LocalUser -Name "Administrator"
