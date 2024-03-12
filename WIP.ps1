@@ -47,7 +47,7 @@ function New-LocalAccount {
     $Password = Read-Host -AsSecureString -Prompt "$User PASSWORD(1): "
     $Verified = Read-Host -AsSecureString -Prompt "$User PASSWORD(2): "
     $Secret1 = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($Password))
-    $Secret2 = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($Password))
+    $Secret2 = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($Verified))
   } while ($Secret1 -ne $Secret2)
   
   if ($UserExists) {
