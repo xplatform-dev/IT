@@ -51,13 +51,13 @@ function New-LocalAccount {
   } while ($Secret1 -ne $Secret2)
   
   if ($UserExists) {
-    Write-Verbose "Creating new user $User"
-    New-LocalUser -Name $UserName -Description $Description -Password $Password -PasswordNeverExpires $true
-  } else {
     Write-Verbose "Setting user $User password, flags, and description"
     Set-LocalUser -Name $UserName -Description $Description -Password $Password -PasswordNeverExpires $true
+  } else {
+    Write-Verbose "Creating new user $User"
+    New-LocalUser -Name $UserName -Description $Description -Password $Password -PasswordNeverExpires $true
   }
-  if ($InGroup) {
+  if (!($InGroup)) {
     Write-Verbose "Adding user $User to group: $Group"
     Add-LocalGroupMember -Group $Group -Member $UserName
   }
