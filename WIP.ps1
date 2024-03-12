@@ -38,9 +38,9 @@ function New-LocalAccount {
   $GroupName = "Administrators"
   
   $User = "$env:COMPUTERNAME\$UserName"
-  $UserExists = (Get-LocalUser).Name -Contains $User
+  $UserExists = Get-LocalUser -Name $UserName 2> $null
   $Group = $GroupName
-  $InGroup = (Get-LocalGroupMember $Group).Name -contains $User
+  $InGroup = Get-LocalGroupMember -Group $Group -Membmer $UserName 2> $null
 
   # Password
   do {
@@ -50,14 +50,14 @@ function New-LocalAccount {
     $Secret2 = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($Password))
   } while ($Secret1 -ne $Secret2)
   
-  if ($UserExists -ne $true) {
+  if ($UserExists) {
     Write-Verbose "Creating new user $User"
     New-LocalUser -Name $User -Description $Description -Password $Password -PasswordNeverExpires
   } else {
     Write-Verbose "Setting user $User password, flags, and description"
     Set-LocalUser -Name $User -Description $Description -Password $Password -PasswordNeverExpires
   }
-  if ($InGroup -ne $true) {
+  if ($InGroup) {
     Write-Verbose "Adding user $User to group: $Group"
     Add-LocalGroupMember -Group $Group -Member $User
   }
@@ -110,17 +110,21 @@ function New-AcquisitionAgentTask {
   $AA_Path = "C:\Program Files (x86)\Acquisition Agent\Acquisition Agent.exe"
   
   $TaskName = "Run Acquisition Agent as Admin"
-  Unregister-ScheduledTask -TaskName $TaskName -Confirm:$false
+  $T = Get-ScheduledTask -TaskName $TaskName 2> $null
+  if ($T) {
+    Unregister-ScheduledTask -TaskName $TaskName -Confirm:$false
+  }
   $Description = "Runs $AA_Path as Admin"
   $Action = New-ScheduledTaskAction -Execute $AA_Path
   $Trigger = New-ScheduledTaskTrigger -AtLogOn 
   $Principal = New-ScheduledTaskPrincipal -UserId "$env:COMPUTERNAME\ITAdmin" -RunLevel Highest -LogonType "ServiceAccount"
-  # TODO phish@xplatform.dev Setting mapping
-  $Settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -Compatibility "Win10"
+  $Settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -Compatibility "Win8"
+  # Stopping multiple Instances is not a supported enum, but this value is. 
+  # > [System.Enum]::GetNames('Microsoft.PowerShell.Cmdletization.GeneratedTypes.ScheduledTask.MultipleInstancesEnum')
   $Settings.CimInstanceProperties.Item("MultipleInstances").Value = 3
-  # TODO phish@xplatform.dev Verify -AtLogOn for all users
   $Task = New-ScheduledTask -Action $Action -Trigger $Trigger -Description $Description -Principal $Principal -Settings $Settings
   Register-ScheduledTask "Run Acquisition Agent as Admin" -InputObject $Task
+  Remove-Item -Path "C:\ProgramData\Microsoft\Windows\Start Menu\Prgroams\Startup\*"
 }
 
 function Initilize-Cleanup {
