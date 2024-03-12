@@ -52,18 +52,18 @@ function New-LocalAccount {
   
   if ($UserExists) {
     Write-Verbose "Creating new user $User"
-    New-LocalUser -Name $User -Description $Description -Password $Password -PasswordNeverExpires $true
+    New-LocalUser -Name $UserName -Description $Description -Password $Password -PasswordNeverExpires $true
   } else {
     Write-Verbose "Setting user $User password, flags, and description"
-    Set-LocalUser -Name $User -Description $Description -Password $Password -PasswordNeverExpires $true
+    Set-LocalUser -Name $UserName -Description $Description -Password $Password -PasswordNeverExpires $true
   }
   if ($InGroup) {
     Write-Verbose "Adding user $User to group: $Group"
-    Add-LocalGroupMember -Group $Group -Member $User
+    Add-LocalGroupMember -Group $Group -Member $UserName
   }
   if ($Group -ne "Administrators") {
     Write-Verbose "Prevent user from changing password"
-    Set-LocalUser -Name $User -UserMayChangePassword $false
+    Set-LocalUser -Name $UserName -UserMayChangePassword $false
   }
 }
 
