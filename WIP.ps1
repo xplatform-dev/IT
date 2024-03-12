@@ -33,7 +33,7 @@ function Disable-UAC {
 function New-LocalAccount {
   # TODO phish@xplatform.dev TESTING!
   [CmdletBinding()]
-  $UserName = "ITadmin"
+  $UserName = "ITAdmin"
   $Description = "42 North Dental Local Admin Account"
   $GroupName = "Administrators"
   
@@ -106,16 +106,17 @@ function New-AcquisitionAgentTask {
   $task = New-ScheduledTask -Action $action -Principal $principal -Trigger $trigger -Settings $settings
   Register-ScheduledTask T1 -InputObject $task
   #>
-
   $AA_Path = "C:\Program Files (x86)\Acquisition Agent\Acquisition Agent.exe"
+  
+  $TaskName = "Run Acquisition Agent as Admin"
+  $Description = "Runs $AA_Path as Admin"
   $Action = New-ScheduledTaskAction -Execute $AA_Path
-  $Description = "Runs $AA_Path as admin"
-  # TODO phish@xplatform.dev Principal mapping
-  $Principal = New-ScheduledTaskPrincipal -GroupId "BUILTIN\Administrators" -RunLevel Highest
+  $Trigger = New-ScheduledTaskTrigger -AtLogOn
+  $Principal = New-ScheduledTaskPrincipal -UserId "$env:COMPUTERNAME\ITAdmin" -RunLevel Highest -LogonType "TASK_LOGON_SERVICE_ACCOUNT"
   # TODO phish@xplatform.dev Setting mapping
   $Settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries
+  $Settings.CimInstanceProperties.Item("MultipleInstances").Value = 3
   # TODO phish@xplatform.dev Verify -AtLogOn for all users
-  $Trigger = New-ScheduledTaskTrigger -AtLogOn
   $Task = New-ScheduledTask -Action $Action -Description $Description -Principal $Principal -Settings $Settings
   Register-ScheduledTask "Run Acquisition Agent as Admin" -InputObject $Task
 }
@@ -131,7 +132,6 @@ function Initilize-Cleanup {
 }
 
 function Initilize-PC {
-  Write-Host "If this was invoked directly, you may have meant to run 'Initilize-LocalPC' or 'Initilize-DomainPC'"
   Unprotect-LocalPasswordLimit
   Enable-Windows
   Disable-UAC
