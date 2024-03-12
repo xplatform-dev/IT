@@ -125,7 +125,7 @@ function New-AcquisitionAgentTask {
   $Settings.CimInstanceProperties.Item("MultipleInstances").Value = 3
   $Task = New-ScheduledTask -Action $Action -Trigger $Trigger -Description $Description -Principal $Principal -Settings $Settings
   Register-ScheduledTask "Run Acquisition Agent as Admin" -InputObject $Task
-  Remove-Item -Path "C:\ProgramData\Microsoft\Windows\Start Menu\Prgroams\Startup\*"
+  Remove-Item -Path "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup\*"
 }
 
 function Initialize-Cleanup {
