@@ -40,7 +40,7 @@ function New-LocalAccount {
   $User = "$env:COMPUTERNAME\$UserName"
   $UserExists = Get-LocalUser -Name $UserName 2> $null
   $Group = $GroupName
-  $InGroup = Get-LocalGroupMember -Group $Group -Membmer $UserName 2> $null
+  $InGroup = Get-LocalGroupMember -Group $Group -Member $UserName 2> $null
 
   # Password
   do {
@@ -128,7 +128,7 @@ function New-AcquisitionAgentTask {
   Remove-Item -Path "C:\ProgramData\Microsoft\Windows\Start Menu\Prgroams\Startup\*"
 }
 
-function Initilize-Cleanup {
+function Initialize-Cleanup {
   Unprotect-LocalPasswordLimit
   Enable-Windows
   Disable-UAC
@@ -138,22 +138,23 @@ function Initilize-Cleanup {
   Disable-DefaultAdmin
 }
 
-function Initilize-PC {
+function Initialize-PC {
   Unprotect-LocalPasswordLimit
   Enable-Windows
   Disable-UAC
   New-LocalAccount
   Grant-FileAndPrinterSharing
-  # New-AcquisitionAgentTask
+  New-AcquisitionAgentTask
   Disable-DefaultAdmin
 }
 
 # TODO phish@xplatform.dev implement this
-workflow Initilize-LocalPC {
+workflow Initialize-LocalPC {
   
 }
 
 # TODO phish@xplatform.dev implement this
-workflow Initilize-DomainPC {
+workflow Initialize-DomainPC {
 
 }
+
