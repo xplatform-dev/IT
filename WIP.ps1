@@ -106,13 +106,15 @@ function New-AcquisitionAgentTask {
   $task = New-ScheduledTask -Action $action -Principal $principal -Trigger $trigger -Settings $settings
   Register-ScheduledTask T1 -InputObject $task
   #>
+  
   $AA_Path = "C:\Program Files (x86)\Acquisition Agent\Acquisition Agent.exe"
   
   $TaskName = "Run Acquisition Agent as Admin"
+  Unregister-ScheduledTask -TaskName $TaskName -Confirm:$false
   $Description = "Runs $AA_Path as Admin"
   $Action = New-ScheduledTaskAction -Execute $AA_Path
   $Trigger = New-ScheduledTaskTrigger -AtLogOn 
-  $Principal = New-ScheduledTaskPrincipal -UserId "$env:COMPUTERNAME\ITAdmin" -RunLevel Highest -LogonType "TASK_LOGON_SERVICE_ACCOUNT"
+  $Principal = New-ScheduledTaskPrincipal -UserId "$env:COMPUTERNAME\ITAdmin" -RunLevel Highest -LogonType "ServiceAccount"
   # TODO phish@xplatform.dev Setting mapping
   $Settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -Compatibility "Win10"
   $Settings.CimInstanceProperties.Item("MultipleInstances").Value = 3
