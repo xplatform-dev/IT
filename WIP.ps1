@@ -52,10 +52,10 @@ function New-LocalAccount {
   
   if ($UserExists) {
     Write-Verbose "Setting user $User password, flags, and description"
-    Set-LocalUser -Name $UserName -Description $Description -Password $Password -PasswordNeverExpires $true
+    Set-LocalUser -Name $UserName -Description $Description -Password $Password -PasswordNeverExpires
   } else {
     Write-Verbose "Creating new user $User"
-    New-LocalUser -Name $UserName -Description $Description -Password $Password -PasswordNeverExpires $true
+    New-LocalUser -Name $UserName -Description $Description -Password $Password -PasswordNeverExpires
   }
   if (!($InGroup)) {
     Write-Verbose "Adding user $User to group: $Group"
