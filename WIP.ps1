@@ -164,7 +164,7 @@ function Initialize-PC {
   Grant-FileAndPrinterSharing
   New-AcquisitionAgentTask
   # Rename-Computer
-  Restart-Computer -Wait 
+  # Restart-Computer -Wait 
   New-LocalAccount -UserName "Administrator" -GroupName "Administrators" -Description "Windows Default Admin Account" -FullName "Local Administrator"
   # Install Applications
   # Local User Account?
