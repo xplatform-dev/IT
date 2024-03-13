@@ -10,7 +10,7 @@ function Unprotect-LocalPasswordLimit {
   Write-Verbose "Reading security policies from $database to $env:HOSTNAME"
   secedit /configure /db C:\Windows\security\local.sdb /cfg C:\secpol.cfg /areas SECURITYPOLICY
   Write-Verbose "Deleting file $database"
-  rm  -Force c:\secpol.cfg -confirm:$false
+  Remove-Item  -Force  -Path "c:\secpol.cfg" -confirm:$false
 }
 
 # Activates Windows
@@ -23,6 +23,7 @@ function Enable-Windows {
   } else {
     Write-Host "Product Key not found"
   }
+  Remove-Item -Force -Path "C:\Users\Public\Desktop\Microsoft Edge.lnk"
 }
 
 # Disabled UAC Prompt
@@ -30,40 +31,56 @@ function Disable-UAC {
   reg.exe ADD HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System /v EnableLUA /t REG_DWORD /d 0 /f
 }
 
+function 
+
 function New-LocalAccount {
   # TODO phish@xplatform.dev TESTING!
   [CmdletBinding()]
-  $UserName = "ITAdmin"
-  $Description = "42 North Dental Local Admin Account"
-  $GroupName = "Administrators"
+  param (
+    [Parameter(Mandatory=$true)]
+    [string]$UserName,
+
+    [Parameter(Mandatory=$true)]
+    [ValidateSet("Users", "Administrators", ErrorMessage="Probably need to edit the script for that group")]$GroupName,
+
+    [Parameter(Mandatory=$false)]
+    [string]$Description,
+
+    [Parameter(Mandatory=$false)]
+    [string]$FullName,
+
+    [switch]$PasswordExpires,
+
+    [switch]$ForbidChangePassword
+  )
   
-  $User = "$env:COMPUTERNAME\$UserName"
+  $QualifiedUser = "$env:COMPUTERNAME\$UserName"
   $UserExists = Get-LocalUser -Name $UserName 2> $null
-  $Group = $GroupName
-  $InGroup = Get-LocalGroupMember -Group $Group -Member $UserName 2> $null
 
   # Password
   do {
-    $Password = Read-Host -AsSecureString -Prompt "$User PASSWORD(1): "
-    $Verified = Read-Host -AsSecureString -Prompt "$User PASSWORD(2): "
+    $Password = Read-Host -AsSecureString -Prompt "$QualifiedUser PASSWORD(1): "
+    $Verified = Read-Host -AsSecureString -Prompt "$QualifiedUser PASSWORD(2): "
     $Secret1 = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($Password))
     $Secret2 = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($Verified))
   } while ($Secret1 -ne $Secret2)
   
-  if ($UserExists) {
-    Write-Verbose "Setting user $User password, flags, and description"
-    Set-LocalUser -Name $UserName -Description $Description -Password $Password -PasswordNeverExpires
+  # Account
+  if (!($UserExists)) {
+    New-LocalUser -Description $Description -FullName $FullName -Name $UserName -Password $Password -PasswordNeverExpires
   } else {
-    Write-Verbose "Creating new user $User"
-    New-LocalUser -Name $UserName -Description $Description -Password $Password -PasswordNeverExpires
+    Set-LocalUser -Description $Description -FullName $FullName -Name $UserName -Password $Password -PasswordNeverExpires $true
   }
-  if (!($InGroup)) {
-    Write-Verbose "Adding user $User to group: $Group"
-    Add-LocalGroupMember -Group $Group -Member $UserName
-  }
-  if ($Group -ne "Administrators") {
-    Write-Verbose "Prevent user from changing password"
+  if ($PasswordExpires) {Set-LocalUser -Name $UserName -PasswordNeverExpires $false}
+  if ($ForbidChangePassword) {
     Set-LocalUser -Name $UserName -UserMayChangePassword $false
+  } else {
+    Set-LocalUser -Name $UserName -UserMayChangePassword $true
+  }
+  
+  $InGroup = Get-LocalGroupMember -Group $GroupName -Member $UserName 2> $null
+  if (!($InGroup)) {
+    Add-LocalGroupMember -Group $GroupName -Member $UserName -confirm:$false
   }
 }
 
@@ -129,8 +146,9 @@ function New-AcquisitionAgentTask {
 }
 
 function Initialize-Cleanup {
-  Unprotect-LocalPasswordLimit
+  <# DO NOT USE #>
   Enable-Windows
+  Unprotect-LocalPasswordLimit
   Disable-UAC
   New-LocalAccount
   Grant-FileAndPrinterSharing
@@ -139,22 +157,20 @@ function Initialize-Cleanup {
 }
 
 function Initialize-PC {
-  Unprotect-LocalPasswordLimit
   Enable-Windows
   Disable-UAC
-  New-LocalAccount
+  Unprotect-LocalPasswordLimit
+  New-LocalAccount -UserName "ITAdmin" -GroupName "Administrators" -Description "42 North Dental Local Administrator Account" -FullName "IT Admin"
   Grant-FileAndPrinterSharing
   New-AcquisitionAgentTask
+  # Rename-Computer
+  Restart-Computer -Wait 
+  New-LocalAccount -UserName "Administrator" -GroupName "Administrators" -Description "Windows Default Admin Account" -FullName "Local Administrator"
+  # Install Applications
+  # Local User Account?
+  # Group Policy
   Disable-DefaultAdmin
+  # Restart-Computer -Wait
 }
 
-# TODO phish@xplatform.dev implement this
-workflow Initialize-LocalPC {
-  
-}
-
-# TODO phish@xplatform.dev implement this
-workflow Initialize-DomainPC {
-
-}
-
+Initialize-PC
